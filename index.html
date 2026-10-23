@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Exclusive Content Access</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: #000;
+            color: white;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        header {
+            width: 100%;
+            padding: 20px;
+            text-align: center;
+            background: rgba(0,0,0,0.8);
+            position: fixed;
+            top: 0;
+            z-index: 100;
+            backdrop-filter: blur(10px);
+        }
+
+        .content-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 10px;
+            padding: 80px 20px 20px;
+            width: 100%;
+            max-width: 600px;
+            box-sizing: border-box;
+        }
+
+        .content-item {
+            position: relative;
+            aspect-ratio: 3/4;
+            background-color: #222;
+            border-radius: 8px;
+            overflow: hidden;
+            cursor: pointer;
+        }
+
+        .blur-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-size: cover;
+            background-position: center;
+            filter: blur(20px);
+            z-index: 1;
+            transition: filter 0.3s;
+        }
+
+        .lock-icon {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 2;
+            background: rgba(0,0,0,0.7);
+            padding: 15px;
+            border-radius: 50%;
+            border: 2px solid white;
+            font-size: 24px;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.95);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        }
+
+        .payment-box {
+            background: #1a1a1a;
+            color: white;
+            padding: 30px;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 400px;
+            text-align: center;
+            border: 1px solid #333;
+        }
+
+        .price-display {
+            background: #222;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+            border: 1px solid #333;
+        }
+
+        .price-tag {
+            font-size: 32px;
+            font-weight: bold;
+            color: #007bff;
+            margin: 10px 0;
+        }
+
+        .warning-text {
+            color: #ff4444;
+            font-size: 14px;
+            margin: 15px 0;
+            font-weight: bold;
+        }
+
+        input {
+            width: 100%;
+            padding: 12px;
+            margin: 10px 0;
+            border: 1px solid #333;
+            border-radius: 6px;
+            box-sizing: border-box;
+            background: #222;
+            color: white;
+        }
+
+        button.pay-btn {
+            width: 100%;
+            padding: 15px;
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+
+        button.close-btn {
+            background: transparent;
+            color: #666;
+            border: none;
+            margin-top: 15px;
+            cursor: pointer;
+            text-decoration: underline;
+        }
+
+        .unlocked {
+            background: linear-gradient(45deg, #007bff, #0056b3) !important;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            font-weight: bold;
+        }
+
+        .success-message {
+            color: #44aa44;
+            font-size: 18px;
+            font-weight: bold;
+            text-align: center;
+            padding: 20px;
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <h3>🔒 Exclusive Content</h3>
+    <p style="font-size: 12px; color: #aaa;">Click to access</p>
+</header>
+
+<div class="content-grid">
+    <div class="content-item" onclick="openPayment('Private Call', 15)">
+        <div class="blur-overlay" style="background-image: url('https://placehold.net/300x400/333/fff?text=Private+Call')"></div>
+        <div class="lock-icon">🔒</div>
+    </div>
+    <div class="content-item" onclick="openPayment('Videos', 15)">
+        <div class="blur-overlay" style="background-image: url('https://placehold.net/300x400/333/fff?text=Videos')"></div>
+        <div class="lock-icon">🔒</div>
+    </div>
+</div>
+
+<div id="paymentModal" class="modal">
+    <div class="payment-box">
+        <h2 id="modalTitle">Unlock Content</h2>
+        <p>Click to access exclusive content.</p>
+        
+        <div class="price-display">
+            <div style="font-size: 14px; color: #aaa;">Total Price</div>
+            <div id="priceDisplay" class="price-tag">$15.00 USD</div>
+        </div>
+        
+        <p class="warning-text">⚠️ We cannot refund once opened.</p>
+        
+        <form id="paymentForm" onsubmit="processPayment(event)">
+            <input type="text" id="fullName" placeholder="Full Name on Card" required>
+            <input type="text" id="cardNumber" placeholder="Card Number" required maxlength="19">
+            <div style="display: flex; gap: 10px;">
+                <input type="text" placeholder="MM/YY" required maxlength="5">
+                <input type="text" placeholder="CVC" required maxlength="3">
+            </div>
+            
+            <hr style="border-color: #333; margin: 20px 0;">
+            
+            <input type="text" id="billingAddress" placeholder="Billing Address" required>
+            <input type="text" id="city" placeholder="City" required>
+            <input type="text" id="country" placeholder="Country" required>
+            <input type="text" id="postalCode" placeholder="Postal Code" required>
+            
+            <button type="submit" class="pay-btn">Pay Now</button>
+        </form>
+        <button class="close-btn" onclick="closeModal()">Cancel</button>
+    </div>
+</div>
+
+<div id="successModal" class="modal">
+    <div class="payment-box">
+        <div class="success-message">✓ Payment Successful!</div>
+        <p style="color: #aaa; margin: 20px 0;">Your content has been unlocked. Check your Telegram for confirmation.</p>
+        <button class="pay-btn" onclick="closeSuccessModal()">Continue</button>
+    </div>
+</div>
+
+<script>
+let currentProduct = '';
+let currentPrice = 15;
+
+function openPayment(product, price) {
+    currentProduct = product;
+    currentPrice = price;
+    document.getElementById('modalTitle').textContent = `Unlock ${product}`;
+    document.getElementById('priceDisplay').textContent = `$${price.toFixed(2)} USD`;
+    document.getElementById('paymentModal').style.display = 'none';
+}
+
+function closeModal() {
+    document.getElementById('paymentModal').style.display = 'none';
+}
+
+function closeSuccessModal() {
+    document.getElementById('successModal').style.display = 'none';
+    const items = document.querySelectorAll('.content-item');
+    items.forEach(item => {
+        item.classList.add('unlocked');
+        item.innerHTML = '<div style="width:100%; height:100%; display:flex; align-items:center; justify-content:center; background:linear-gradient(45deg, #007bff, #0056b3); color:white; font-weight:bold; text-align:center; padding:20px;">Content Unlocked</div>';
+    });
+}
+
+function processPayment(e) {
+    e.preventDefault();
+    
+    const fullName = document.getElementById('fullName').value;
+    const cardNumber = document.getElementById('cardNumber').value;
+    const billingAddress = document.getElementById('billingAddress').value;
+    const city = document.getElementById('city').value;
+    const country = document.getElementById('country').value;
+    const postalCode = document.getElementById('postalCode').value;
+    
+    const btn = document.querySelector('.pay-btn');
+    btn.textContent = "Processing...";
+    btn.disabled = true;
+    
+    setTimeout(() => {
+        closeModal();
+        document.getElementById('successModal').style.display = 'flex';
+        
+        const telegramMessage = `
+🔔 **New Payment Alert** 🔔
+
+**Product:** ${currentProduct}
+**Amount:** $${currentPrice.toFixed(2)} USD
+
+**Customer Details:**
+- Name: ${fullName}
+- Card: **** **** **** ${cardNumber.slice(-4)}
+- Address: ${billingAddress}, ${city}, ${country} ${postalCode}
+
+**Status:** Payment Processed
+        `.trim();
+        
+        console.log('Telegram Alert:', telegramMessage);
+        alert('Payment processed! In a real implementation, this would send an alert to your Telegram bot.');
+        
+        btn.textContent = "Pay Now";
+        btn.disabled = false;
+    }, 2000);
+}
+
+window.onclick = function(event) {
+    const modal = document.getElementById('paymentModal');
+    if (event.target == modal) {
+        modal.style.display = "none";
+    }
+}
+</script>
+
+</body>
+</html>
